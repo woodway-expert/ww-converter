@@ -1,0 +1,298 @@
+---
+description: AI rules derived by SpecStory from the project AI interaction history
+globs: *
+---
+
+## HEADERS
+
+## TECH STACK
+
+*   Python (primary language)
+*   `google-genai` (NEW official Gemini SDK)
+    *   [google-genai SDK (Official)](https://github.com/googleapis/python-genai)
+*   `gemini-flash-latest` (AI model for metadata generation)
+*   `gemini-2.5-flash` (Default AI Model)
+*   CustomTkinter (GUI framework)
+*   Pillow (PIL Fork) (Image Processing)
+*   piexif (EXIF/XMP Metadata)
+*   PyInstaller (for building .exe)
+*   python-dotenv (for environment variable configuration)
+*   typing_extensions
+*   pytest (for development)
+*   `tkinterdnd2` (for drag and drop functionality)
+*   ffmpeg-python (for video conversion)
+
+## PROJECT DOCUMENTATION & CONTEXT SYSTEM
+
+*   All plans and drafts should be created as `.md` files under the `docs` folder.
+
+## CODING STANDARDS
+
+*   Adhere to SEO best practices for file naming.
+    *   Use hyphens (-) to separate words.
+    *   Keep names descriptive but concise (3-5 words).
+    *   Include the primary keyword.
+    *   Use lowercase letters only.
+    *   Include product identifiers (size, color, material).
+    *   No spaces, underscores, or special characters.
+    *   No generic names like `IMG_001.jpg` or `photo.png`.
+    *   No keyword stuffing.
+*   API keys must be configured as environment variables before building and should not be visible to the user in the GUI.
+*   Create and run tests during development.
+*   When transliterating the Cyrillic letter "ш," it's crucial to use the correct Latin representation to maintain clarity and consistency. The standard transliteration for "ш" is "sh." Using "s" instead of "sh" can lead to misinterpretations and inaccuracies.
+*   Company name is `WoodWay Expert` (previously `Wood-way Expert`).
+*   When both `category` and `product_type` are present, the filename should include both, formatted as `{category}-{product_type}-{species}-...`.
+
+## GUI GUIDELINES
+
+*   The UI must be in Ukrainian.
+*   The GUI must be user-friendly.
+*   The GUI must support drag and drop functionality to allow users to drag files from Windows Explorer into the application window.
+*   Files in the preview must be displayed as a list with description previews.
+*   Files in the preview must have a prominent "chosen" state.
+*   Files in the preview must be draggable to change their order.
+    *   Modify the `_create_image_card` method to bind drag events:
+        *   `<Button-1>` - Start drag (store dragged item)
+        *   `<B1-Motion>` - Visual feedback during drag (highlight drop target)
+        *   `<ButtonRelease-1>` - Complete reorder (swap items in `self.images` list, update indices)
+    *   Add drag state variables: `self._drag_item`, `self._drag_start_y`, `self._drag_target_index`, `self._drag_indicator`
+    *   Create `_on_card_drag_start()`, `_on_card_drag_motion()`, `_on_card_drag_end()` methods
+    *   Add visual feedback (cursor change, card highlight during drag)
+    *   Update file indices after reorder with `_renumber_items()` method
+    *   During drag, show a highlighted border on the potential drop position. The cursor will change to indicate draggability.
+*   The GUI must display the new tags that will be applied to each file.
+*   Tag fields must be easily copyable.
+*   The GUI must include multi-language tabs: UA / EN / RU tabs for viewing/copying each language's tags
+*   Dropdown fields are immutable, only allowing selection from the dropdown options. **MUST be unlocked for editing based on the user's latest instruction.**
+*   The "Налаштування відео" section must be scrollable (or otherwise made fully visible).
+*   The GUI must display video conversion progress in the status bar, including percentage, speed, and estimated time remaining.
+*   The GUI must display user-friendly error messages for video conversion, guiding users to check FFmpeg installation and codec support.
+*   The GUI must provide a summary dialog showing successful and failed conversions with detailed error messages.
+*   The GUI must display the model switcher.
+    *   The model switcher must always be visible when the AI checkbox is checked.
+*   The GUI must include a checkbox "Генерувати обидва формати (MP4 + WebM)" to generate both MP4 and WebM formats simultaneously.
+*   The GUI must include a "Cancel" button at the bottom, near the loading bar.
+*   Other buttons must be greyed out when processing is in progress.
+*   Replace `PIL.ImageTk.PhotoImage` with `ctk.CTkImage` for thumbnails to ensure proper scaling on HighDPI displays. The window icon (`iconphoto`) must remain as `ImageTk.PhotoImage` since it's a tkinter method.
+
+## WORKFLOW & RELEASE RULES
+
+*   Create and run tests during development.
+*   When building the application, the API key must be set as an environment variable.
+*   Implement post-processing to translate any untranslated Ukrainian terms in the AI responses.
+*   To build the release executable v.1.0, use PyInstaller.
+    *   Activate virtual environment and run build:
+        ```powershell
+        .\venv\Scripts\Activate.ps1
+        python build.py
+        ```
+    *   Ensure `GEMINI_API_KEY` is set in `.env` file.
+    *   FFmpeg installed for video support.
+    *   Output: `dist\WoodWayConverter.exe`
+    *   Optional: Add version to executable name by modifying `build.py` to produce `WoodWayConverter-v1.0.exe`.
+
+## DEBUGGING
+
+*   Implement user-friendly visual feedback for FFmpeg progress and errors.
+*   Ensure the FFmpeg command window is hidden during video generation.
+
+## AI MODEL USAGE
+
+*   Use &#x20;`gemini-flash-latest` for generating meta tags (descriptions). This is the alias that always points to the latest Flash model.
+*   For optimal Gemini results, send structured context, including:
+    *   Category
+    *   Wood Type
+    *   Finish
+    *   Size
+    *   Generate SEO metadata in THREE languages (Ukrainian, English, Russian):
+        *   filename: SEO-optimized (Latin transliteration, hyphens, no spaces) - SINGLE version
+        *   alt\_text: (max 125 chars each language)
+        *   title: (max 60 chars each language)
+        *   description: (max 160 chars each language)
+        *   tags: (comma-separated, 3-5 tags per language)
+    *   Follow Google Image SEO best practices:
+        *   Be descriptive but concise
+        *   Include relevant keywords naturally
+        *   No keyword stuffing
+        *   Human-readable
+        *   Include product specifications where relevant
+        *   Emphasize expertise, quality, and trustworthiness (E-E-A-T)
+        *   Use natural, conversational phrasing for voice search
+        *   Descriptions should work as product snippets for Schema.org
+    *   Return JSON in this exact structure:
+
+```json
+{
+  "ua": {
+    "alt_text": "...",
+    "title": "...",
+    "description": "...",
+    "tags": "..."
+  },
+  "en": {
+    "alt_text": "...",
+    "title": "...",
+    "description": "...",
+    "tags": "..."
+  },
+  "ru": {
+    "alt_text": "...",
+    "title": "...",
+    "description": "...",
+    "tags": "..."
+  }
+}
+```
+
+*   **IMPORTANT:** The category (e.g., "Дошка") must be included in the filename, alt text, title, and description.
+*   **CRITICAL: ALWAYS include the Category name (e.g., "Дошка", "Шпон", "Фанера") FIRST in the description when provided, even if Product Type is also present. Format: "Category ProductType Species" or "Category Species"**
+*   **CRITICAL: Ensure the "ua" section MUST be in UKRAINIAN language only** (e.g., "Дошка", "Обрізна", "Горіх американський"), the "en" section MUST be in ENGLISH language only (e.g., "Board", "Sawn", "American Walnut"), and the "ru" section MUST be in RUSSIAN language only (e.g., "Доска", "Обрезная", "Американский орех"). DO NOT mix languages - each section must be in its designated language. Translate all product attributes to the target language.**
+*   Include tags in AI responses, and the tags format should be a comma-separated list with Category, Type, Species, Grade, and WoodWay Expert (e.g., "Дошка, Обрізна, Горіх американський, Екстра, WoodWay Expert").
+*   For Image and Video SEO metadata generation, adhere to the following language requirements in the AI prompts:
+    *   **CRITICAL LANGUAGE REQUIREMENTS:**
+        *   **"ua" section MUST be in UKRAINIAN language only** (e.g., "Дошка", "Обрізна", "Горіх американський")
+        *   **"en" section MUST be in ENGLISH language only** (e.g., "Board", "Sawn", "American Walnut") - translate ALL product terms
+        *   **"ru" section MUST be in RUSSIAN language only** (e.g., "Доска", "Обрезная", "Американский орех") - translate ALL product terms
+        *   DO NOT copy Ukrainian words into EN/RU sections
+        *   Translate product names: "Дошка"→"Lumber"/"Доска", "Обрізна"→"Edged"/"Обрезная", "Горіх американський"→"American Walnut"/"Орех американский"
+*   The AI may sometimes return Ukrainian words in the English/Russian sections despite being instructed not to. Implement post-processing to translate any untranslated Ukrainian terms in the AI responses.
+*   The application currently uses a prompt-based approach with manual parsing and validation for Gemini responses. Consider implementing Gemini's structured output feature using `response_mime_type="application/json"` and `response_schema` in the `google-genai` SDK for more reliable and structured responses.
+    *   The current implementation is NOT using Gemini's structured output feature.
+        *   It sends a text prompt asking for JSON.
+        *   Parses the response text manually.
+        *   Handles markdown code blocks with regex.
+        *   Validates the structure manually.
+    *   Gemini's `google-genai` SDK supports structured output via:
+        *   `response_mime_type="application/json"` - Forces guaranteed JSON output.
+        *   `response_schema` - Defines the exact expected structure.
+
+## DATA STRUCTURE & DYNAMIC DROPDOWNS
+
+The application will use a hierarchical JSON structure (`data/categories.json`) to drive the UI.
+
+### Logic Flow
+
+1.  **Category** selected (e.g., "Lumber")
+2.  **Type** dropdown populates (e.g., "Edged", "Unedged")
+3.  **Properties** appear based on Category (e.g., "Thickness", "Grade" for Lumber; "Backing" for Veneer)
+
+### JSON Schema Example
+
+```json
+{
+ "categories": {
+   "lumber": {
+     "name_ua": "Дошка",
+     "slug": "doshka",
+      "types": {
+        "edged": { "name_ua": "Обрізна", "slug": "obrizna" },
+        "unedged": { "name_ua": "Необрізна", "slug": "obrizna" }
+      },
+      "properties": ["species", "thickness", "grade", "length"]
+    },
+    "veneer": {
+      "name_ua": "Шпон",
+      "slug": "shpon",
+      "types": {
+        "sliced": { "name_ua": "Струганий", "slug": "struhanyi" },
+        "sawn": { "name_ua": "Пиляний", "slug": "pylianyi" },
+        "root": { "name_ua": "Кореневі зрізи", "slug": "korenevi" }
+      },
+      "properties": ["species", "thickness", "cutting_method"]
+    }
+  },
+ "lists": {
+    "species": { ... },
+    "thickness": { ... }
+   }
+ }
+```
+
+## LUMBER DIMENSIONS AND TAGS
+
+*   Standard lumber dimensions: 32 mm and 52 mm. If these values do not exist in the `data/categories.json` file, they must be added.
+*   When generating tags, include additional tags with the imperial system equivalent (rounded to industry standards). Consult the SEO guidelines when generating these tags.
+*   **Important:** Dropdowns will continue to show only metric values (25mm, 30mm, 32mm, etc.). Imperial measurements will appear only in the generated SEO metadata tags/descriptions, not in the UI dropdowns.
+*   When generating metadata (alt\_text, title, description), always include the category when present.
+
+## VIDEO CONVERSION
+
+*   FFmpeg is required for video conversion. Users must have FFmpeg installed and added to the system PATH.
+*   Video filters must be applied before codec settings in the FFmpeg command. This is critical for proper video processing and to avoid errors. The correct FFmpeg command order is: Input → Filters → Codec Settings → Audio → Output
+*   VP9 codec may need explicit pixel format specification (e.g., `-pix_fmt yuv420p`) when using scale filters.
+*   When scaling videos, the video filters must be applied before codec settings in the FFmpeg command.
+*   For VP9 and AV1 codecs, include `-pix_fmt yuv420p` to ensure compatibility when scaling.
+*   The application must generate both `.mp4` and `.webm` files and with different codecs at once (to make videos most compatible) if the "Генерувати обидва формати (MP4 + WebM)" checkbox is enabled.
+*   When scaling videos, the following logic should be used for determining target dimensions:
+    1.  Calculate target dimensions preserving aspect ratio.
+    2.  Scale down to fit within max dimensions.
+    3.  If original aspect ratio is greater than max aspect ratio, scale to max width.
+    4.  Otherwise, scale to max height.
+    5.  Ensure dimensions are even.
+*   The FFmpeg command must be constructed to place video filters before codec settings to avoid errors. For example: `ffmpeg -y -i input -vf scale=720:720 -c:v libvpx-vp9 -crf 23 -b:v 0 -deadline good -pix_fmt yuv420p -c:a libopus output.webm`.
+*   The application should implement a retry mechanism for AI metadata generation to handle potential failures or invalid responses from the AI model. The retry mechanism should attempt to regenerate the metadata up to 2 times.
+*   If a video filter is needed, it MUST be applied before codec settings in the FFmpeg command line arguments. Input → Filters → Codec Settings → Audio → Output
+*   The video tag display must check if it's a string before joining.
+
+## PROCESSING STATE AND CANCELLATION
+
+*   When processing is active, all action buttons must be disabled and greyed out.
+*   A "Cancel" button must be present in the status bar during processing to allow users to stop ongoing operations. The button text should be "Скасувати" (Cancel in Ukrainian).
+*   The application must manage processing state using:
+    *   A `threading.Event` (`self.cancel_event`) for cancellation tracking.
+    *   A boolean flag (`self.is_processing`) to indicate if processing is active.
+    *   A list (`self.active_threads`) to store references to active processing threads.
+    *   A list (`self.active_ffmpeg_processes`) to store references to active FFmpeg processes.
+*   The `_set_buttons_enabled()` method must be used to enable or disable all action buttons, including: `btn_add`, `btn_clear`, `btn_generate`, `btn_regenerate`, `btn_process`, `btn_output`, `ai_checkbox`, and `model_dropdown`.
+    *   When disabling buttons, the `fg_color` must be set to `("gray70", "gray35")`.
+    *   When re-enabling buttons, the original `fg_color` must be restored.
+*   The `_cancel_processing()` method must set the cancel event, terminate any active FFmpeg processes, and reset the processing state.
+*   Processing methods (`_generate_metadata`, `_regenerate_all`, `_process_media`, `_regenerate_single`) must:
+    *   Check if processing is already active before starting.
+    *   Set the processing state at the start.
+    *   Check for cancellation during execution.
+    *   Reset the processing state when complete or cancelled.
+*   During video conversion, the progress callback must check for cancellation and raise an exception if the cancel event is set.
+*   The original `fg_color` values of buttons must be stored during their creation in `_create_toolbar()` and restored in `_set_buttons_enabled()` to ensure the UI unlocks correctly after processing. Store the original colors in `self._original_button_colors`.
+
+## SEO GUIDELINES
+
+*   **Tags:**
+    *   Be Specific and Relevant: Ensure that tags accurately reflect the content of your media. Generic tags can dilute SEO effectiveness.
+    *   Use Natural Language: Incorporate keywords that potential users might search for, but avoid keyword stuffing.
+    *   Incorporate Long-Tail Keywords: These are longer, more specific phrases that are less competitive and can attract a targeted audience.
+    *   Maintain consistency in tag usage across similar content.
+*   **Descriptions:**
+    *   Craft Compelling Meta Descriptions: Meta descriptions should be concise (70-160 characters) and provide a clear summary of the content. They should entice users to click through from search results.
+    *   Include Primary Keywords Naturally: Integrate relevant keywords seamlessly to improve search visibility without compromising readability.
+    *   Avoid Duplication: Ensure each description is unique to prevent search engines from penalizing your content for duplicate descriptions.
+*   **Alt Texts:**
+    *   Be Descriptive and Concise: Alt text should clearly describe the image content in a few words or a short sentence, typically under 125 characters.
+    *   Avoid Redundant Phrases: Do not use phrases like "image of" or "picture of," as screen readers already identify the element as an image.
+    *   Incorporate Keywords Naturally: Include relevant keywords where appropriate, but avoid keyword stuffing.
+    *   Ensure the alt text aligns with the surrounding content for context.
+*   **Names (File Names):**
+    *   Use Descriptive File Names: Rename media files with descriptive, keyword-rich names before uploading. For example, instead of `IMG1234.jpg`, use `sunset-over-ocean.jpg`.
+    *   Keep It Simple and Relevant: Avoid special characters and keep the name relevant to the content.
+    *   Use hyphens to separate words.
+    *   Keep filenames lowercase and avoid special characters.
+*   Audit Existing Content: Review your current tags, descriptions, alt attributes, and file names to identify areas for improvement.
+*   Update Content Accordingly: Apply the above best practices to enhance the SEO quality of your media files.
+*   Monitor Performance: Use analytics tools to track the impact of these changes on your search engine rankings and adjust as needed.
+
+## VIDEO ANALYSIS WITH GEMINI MODELS
+
+*   To analyze full videos using Google's Gemini models:
+    1.  Upload Videos Directly:
+        *   On Mobile Devices: In the Gemini app, tap the "+" button in the prompt box, select "Gallery," choose your video, and add it.
+        *   On the Web: Drag and drop your video into the prompt box on the Gemini website.
+    2.  Analyze the Video:
+        *   Once uploaded, you can ask Gemini to provide an overview, identify specific parts or items, or answer questions related to the video content.
+    3.  Considerations:
+        *   Video Length: Ensure your video meets the platform's length requirements.
+        *   File Format: Use supported video formats such as MP4, WebM, or MOV.
+    *   Customize Video Processing:
+        *   Set clipping intervals by specifying start and end offsets in the `videoMetadata`.
+        *   Adjust the frame rate sampling by setting a custom frames per second (FPS) value.
+        *   Modify media resolution to optimize processing.
+*   When generating video SEO metadata, send the full video, not only a frame.

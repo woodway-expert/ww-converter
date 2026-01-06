@@ -1,0 +1,349 @@
+{
+  "categories": {
+    "veneer": {
+      "name_ua": "Шпон",
+      "name_en": "Veneer",
+      "name_ru": "Шпон",
+      "slug": "shpon",
+      "types": {
+        "sliced": { "name_ua": "Струганий", "name_en": "Sliced", "name_ru": "Строганный", "slug": "struhanyi" },
+        "sawn": { "name_ua": "Пиляний", "name_en": "Sawn", "name_ru": "Пиленый", "slug": "pylianyi" },
+        "root": { "name_ua": "Кореневі зрізи", "name_en": "Root Cuts", "name_ru": "Корневые срезы", "slug": "korenevi-zrizy" },
+        "edge": { "name_ua": "Кромка зі шпону", "name_en": "Veneer Edge Banding", "name_ru": "Кромка из шпона", "slug": "kromka" }
+      },
+      "properties": ["species", "thickness", "grade", "cutting_method", "backing"]
+    },
+    "lumber": {
+      "name_ua": "Дошка",
+      "name_en": "Lumber",
+      "name_ru": "Доска",
+      "slug": "doshka",
+      "types": {
+        "edged": { "name_ua": "Обрізна", "name_en": "Edged", "name_ru": "Обрезная", "slug": "obrizna" },
+        "unedged": { "name_ua": "Необрізна", "name_en": "Unedged", "name_ru": "Необрезная", "slug": "neobrizna" }
+      },
+      "properties": ["species", "thickness_lumber", "grade_lumber", "length", "width"]
+    },
+    "plywood": {
+      "name_ua": "Фанера",
+      "name_en": "Plywood",
+      "name_ru": "Фанера",
+      "slug": "fanera",
+      "types": {
+        "standard": { "name_ua": "Звичайна (ФК/ФСФ)", "name_en": "Standard (FC/FSF)", "name_ru": "Обычная (ФК/ФСФ)", "slug": "standart" },
+        "birch": { "name_ua": "Березова", "name_en": "Birch", "name_ru": "Березовая", "slug": "bereza" },
+        "flexible": { "name_ua": "Гнучка (Сейба)", "name_en": "Flexible (Seiba)", "name_ru": "Гибкая (Сейба)", "slug": "seiba" },
+        "veneered": { "name_ua": "Шпонована", "name_en": "Veneered", "name_ru": "Шпонированная", "slug": "shponovana" },
+        "okoume": { "name_ua": "Okoume", "name_en": "Okoume", "name_ru": "Окуме", "slug": "okoume" },
+        "fireproof": { "name_ua": "Вогнетривка", "name_en": "Fireproof", "name_ru": "Огнестойкая", "slug": "vohnetryvka" },
+        "poplar": { "name_ua": "Тополя", "name_en": "Poplar", "name_ru": "Тополь", "slug": "topolia" }
+      },
+      "properties": ["thickness_plywood", "sheet_size", "grade_plywood", "water_resistance"]
+    },
+    "mdf": {
+      "name_ua": "МДФ плити",
+      "name_en": "MDF Boards",
+      "name_ru": "МДФ плиты",
+      "slug": "mdf-plyta",
+      "types": {
+        "raw": { "name_ua": "Шліфована", "name_en": "Sanded", "name_ru": "Шлифованная", "slug": "shlifovana" },
+        "veneered": { "name_ua": "Шпонована", "name_en": "Veneered", "name_ru": "Шпонированная", "slug": "shponovana" }
+      },
+      "properties": ["thickness_plywood", "sheet_size", "veneer_species"]
+    },
+    "boards": {
+      "name_ua": "Столярні плити (Blockboard)",
+      "name_en": "Blockboard",
+      "name_ru": "Столярные плиты (Блокборд)",
+      "slug": "stoliarna-plyta",
+      "types": {
+        "veneered": { "name_ua": "Шпонована", "name_en": "Veneered", "name_ru": "Шпонированная", "slug": "shponovana" }
+      },
+      "properties": ["thickness_plywood", "sheet_size", "veneer_species"]
+    },
+    "edge_banding": {
+      "name_ua": "Кромка",
+      "name_en": "Edge Banding",
+      "name_ru": "Кромка",
+      "slug": "kromka",
+      "types": {
+        "veneer": { "name_ua": "Натуральний шпон", "name_en": "Natural Veneer", "name_ru": "Натуральный шпон", "slug": "naturalna" },
+        "fineline": { "name_ua": "Файн-лайн", "name_en": "Fineline", "name_ru": "Файн-лайн", "slug": "fineline" }
+      },
+      "properties": ["species", "width_edge", "thickness_edge", "glue_applied"]
+    },
+    "glue": {
+      "name_ua": "Клей",
+      "name_en": "Glue",
+      "name_ru": "Клей",
+      "slug": "klei",
+      "types": {
+        "wood": { "name_ua": "Для деревини", "name_en": "For Wood", "name_ru": "Для дерева", "slug": "dlia-derevyny" },
+        "veneer": { "name_ua": "Для шпону", "name_en": "For Veneer", "name_ru": "Для шпона", "slug": "dlia-shponu" }
+      },
+      "properties": ["brand", "volume", "water_resistance_class"]
+    },
+    "finish": {
+      "name_ua": "Лакофарбові матеріали",
+      "name_en": "Finishing Materials",
+      "name_ru": "Лакокрасочные материалы",
+      "slug": "lkm",
+      "types": {
+        "oil": { "name_ua": "Олія", "name_en": "Oil", "name_ru": "Масло", "slug": "oliia" },
+        "varnish": { "name_ua": "Лак", "name_en": "Varnish", "name_ru": "Лак", "slug": "lak" },
+        "wax": { "name_ua": "Віск", "name_en": "Wax", "name_ru": "Воск", "slug": "visk" },
+        "stain": { "name_ua": "Бейц/Морилка", "name_en": "Stain", "name_ru": "Морилка", "slug": "beits" }
+      },
+      "properties": ["brand", "color", "gloss_level", "volume"]
+    }
+  },
+  "lists": {
+    "species": {
+      "name_ua": "Порода дерева",
+      "name_en": "Wood Species",
+      "name_ru": "Порода дерева",
+      "options": [
+        {"ua": "Акація", "en": "Acacia", "ru": "Акация", "slug": "akatsiia"},
+        {"ua": "Анегрі", "en": "Anegre", "ru": "Анегри", "slug": "anehri"},
+        {"ua": "Береза", "en": "Birch", "ru": "Береза", "slug": "bereza"},
+        {"ua": "Бубінга", "en": "Bubinga", "ru": "Бубинга", "slug": "bubinha"},
+        {"ua": "Бук", "en": "Beech", "ru": "Бук", "slug": "buk"},
+        {"ua": "Венге", "en": "Wenge", "ru": "Венге", "slug": "venhe"},
+        {"ua": "Вільха", "en": "Alder", "ru": "Ольха", "slug": "vilkha"},
+        {"ua": "Горіх американський", "en": "American Walnut", "ru": "Орех американский", "slug": "horikh-amerykanskyi"},
+        {"ua": "Горіх європейський", "en": "European Walnut", "ru": "Орех европейский", "slug": "horikh-yevropeiskyi"},
+        {"ua": "Дуб", "en": "Oak", "ru": "Дуб", "slug": "dub"},
+        {"ua": "Ебен", "en": "Ebony", "ru": "Эбен", "slug": "eben"},
+        {"ua": "Зебрано", "en": "Zebrano", "ru": "Зебрано", "slug": "zebrano"},
+        {"ua": "Клен", "en": "Maple", "ru": "Клен", "slug": "klen"},
+        {"ua": "Кото", "en": "Koto", "ru": "Кото", "slug": "koto"},
+        {"ua": "Липа", "en": "Linden", "ru": "Липа", "slug": "lypa"},
+        {"ua": "Махагон", "en": "Mahogany", "ru": "Красное дерево", "slug": "mahahon"},
+        {"ua": "Модрина", "en": "Larch", "ru": "Лиственница", "slug": "modryna"},
+        {"ua": "Падук", "en": "Padauk", "ru": "Падук", "slug": "paduk"},
+        {"ua": "Палісандр", "en": "Rosewood", "ru": "Палисандр", "slug": "palisandr"},
+        {"ua": "Сапелі", "en": "Sapele", "ru": "Сапели", "slug": "sapeli"},
+        {"ua": "Сосна", "en": "Pine", "ru": "Сосна", "slug": "sosna"},
+        {"ua": "Тік", "en": "Teak", "ru": "Тик", "slug": "tik"},
+        {"ua": "Тополя", "en": "Poplar", "ru": "Тополь", "slug": "topolia"},
+        {"ua": "Черешня", "en": "Cherry", "ru": "Вишня", "slug": "chereshnia"},
+        {"ua": "Ясен", "en": "Ash", "ru": "Ясень", "slug": "yasen"},
+        {"ua": "Ятоба", "en": "Jatoba", "ru": "Ятоба", "slug": "yatoba"}
+      ]
+    },
+    "thickness": {
+      "name_ua": "Товщина (шпон)",
+      "name_en": "Thickness (Veneer)",
+      "name_ru": "Толщина (шпон)",
+      "options": [
+        {"ua": "0.6 мм", "en": "0.6 mm", "ru": "0.6 мм", "slug": "0.6mm"},
+        {"ua": "1.0 мм", "en": "1.0 mm", "ru": "1.0 мм", "slug": "1mm"},
+        {"ua": "1.5 мм", "en": "1.5 mm", "ru": "1.5 мм", "slug": "1.5mm"},
+        {"ua": "2.5 мм", "en": "2.5 mm", "ru": "2.5 мм", "slug": "2.5mm"},
+        {"ua": "4.5 мм", "en": "4.5 mm", "ru": "4.5 мм", "slug": "4.5mm"}
+      ]
+    },
+    "thickness_lumber": {
+      "name_ua": "Товщина (дошка)",
+      "name_en": "Thickness (Lumber)",
+      "name_ru": "Толщина (доска)",
+      "options": [
+        {"ua": "25 мм", "en": "25 mm", "ru": "25 мм", "slug": "25mm", "imperial": "1 inch"},
+        {"ua": "30 мм", "en": "30 mm", "ru": "30 мм", "slug": "30mm", "imperial": "1-1/4 inch"},
+        {"ua": "32 мм", "en": "32 mm", "ru": "32 мм", "slug": "32mm", "imperial": "1-1/4 inch"},
+        {"ua": "40 мм", "en": "40 mm", "ru": "40 мм", "slug": "40mm", "imperial": "1-1/2 inch"},
+        {"ua": "50 мм", "en": "50 mm", "ru": "50 мм", "slug": "50mm", "imperial": "2 inch"},
+        {"ua": "52 мм", "en": "52 mm", "ru": "52 мм", "slug": "52mm", "imperial": "2 inch"}
+      ]
+    },
+    "thickness_plywood": {
+      "name_ua": "Товщина (плити)",
+      "name_en": "Thickness (Boards)",
+      "name_ru": "Толщина (плиты)",
+      "options": [
+        {"ua": "3 мм", "en": "3 mm", "ru": "3 мм", "slug": "3mm"},
+        {"ua": "4 мм", "en": "4 mm", "ru": "4 мм", "slug": "4mm"},
+        {"ua": "5 мм", "en": "5 mm", "ru": "5 мм", "slug": "5mm"},
+        {"ua": "6 мм", "en": "6 mm", "ru": "6 мм", "slug": "6mm"},
+        {"ua": "9 мм", "en": "9 mm", "ru": "9 мм", "slug": "9mm"},
+        {"ua": "10 мм", "en": "10 mm", "ru": "10 мм", "slug": "10mm"},
+        {"ua": "12 мм", "en": "12 mm", "ru": "12 мм", "slug": "12mm"},
+        {"ua": "15 мм", "en": "15 mm", "ru": "15 мм", "slug": "15mm"},
+        {"ua": "18 мм", "en": "18 mm", "ru": "18 мм", "slug": "18mm"},
+        {"ua": "21 мм", "en": "21 mm", "ru": "21 мм", "slug": "21mm"},
+        {"ua": "24 мм", "en": "24 mm", "ru": "24 мм", "slug": "24mm"},
+        {"ua": "30 мм", "en": "30 mm", "ru": "30 мм", "slug": "30mm"},
+        {"ua": "40 мм", "en": "40 mm", "ru": "40 мм", "slug": "40mm"}
+      ]
+    },
+    "thickness_edge": {
+      "name_ua": "Товщина (кромка)",
+      "name_en": "Thickness (Edge)",
+      "name_ru": "Толщина (кромка)",
+      "options": [
+        {"ua": "0.5 мм", "en": "0.5 mm", "ru": "0.5 мм", "slug": "0.5mm"},
+        {"ua": "1.0 мм", "en": "1.0 mm", "ru": "1.0 мм", "slug": "1mm"},
+        {"ua": "1.5 мм", "en": "1.5 mm", "ru": "1.5 мм", "slug": "1.5mm"},
+        {"ua": "2.0 мм", "en": "2.0 mm", "ru": "2.0 мм", "slug": "2mm"},
+        {"ua": "3.0 мм", "en": "3.0 mm", "ru": "3.0 мм", "slug": "3mm"}
+      ]
+    },
+    "width_edge": {
+      "name_ua": "Ширина (кромка)",
+      "name_en": "Width (Edge)",
+      "name_ru": "Ширина (кромка)",
+      "options": [
+        {"ua": "22 мм", "en": "22 mm", "ru": "22 мм", "slug": "22mm"},
+        {"ua": "44 мм", "en": "44 mm", "ru": "44 мм", "slug": "44mm"},
+        {"ua": "100 мм", "en": "100 mm", "ru": "100 мм", "slug": "100mm"}
+      ]
+    },
+    "sheet_size": {
+      "name_ua": "Розмір листа",
+      "name_en": "Sheet Size",
+      "name_ru": "Размер листа",
+      "options": [
+        {"ua": "2500x1250 мм", "en": "2500x1250 mm", "ru": "2500x1250 мм", "slug": "2500x1250mm"},
+        {"ua": "2440x1220 мм", "en": "2440x1220 mm", "ru": "2440x1220 мм", "slug": "2440x1220mm"},
+        {"ua": "2800x2070 мм", "en": "2800x2070 mm", "ru": "2800x2070 мм", "slug": "2800x2070mm"},
+        {"ua": "3050x1250 мм", "en": "3050x1250 mm", "ru": "3050x1250 мм", "slug": "3050x1250mm"},
+        {"ua": "1525x1525 мм", "en": "1525x1525 mm", "ru": "1525x1525 мм", "slug": "1525x1525mm"}
+      ]
+    },
+    "grade": {
+      "name_ua": "Ґатунок (шпон)",
+      "name_en": "Grade (Veneer)",
+      "name_ru": "Сорт (шпон)",
+      "options": [
+        {"ua": "A", "en": "A", "ru": "A", "slug": "grade-a"},
+        {"ua": "AB", "en": "AB", "ru": "AB", "slug": "grade-ab"},
+        {"ua": "B", "en": "B", "ru": "B", "slug": "grade-b"},
+        {"ua": "BB", "en": "BB", "ru": "BB", "slug": "grade-bb"},
+        {"ua": "C", "en": "C", "ru": "C", "slug": "grade-c"}
+      ]
+    },
+    "grade_lumber": {
+      "name_ua": "Ґатунок (дошка)",
+      "name_en": "Grade (Lumber)",
+      "name_ru": "Сорт (доска)",
+      "options": [
+        {"ua": "Екстра", "en": "Extra", "ru": "Экстра", "slug": "extra"},
+        {"ua": "1 ґатунок", "en": "Grade 1", "ru": "1 сорт", "slug": "grade-1"},
+        {"ua": "2 ґатунок", "en": "Grade 2", "ru": "2 сорт", "slug": "grade-2"},
+        {"ua": "3 ґатунок", "en": "Grade 3", "ru": "3 сорт", "slug": "grade-3"}
+      ]
+    },
+    "grade_plywood": {
+      "name_ua": "Ґатунок (фанера)",
+      "name_en": "Grade (Plywood)",
+      "name_ru": "Сорт (фанера)",
+      "options": [
+        {"ua": "B/BB", "en": "B/BB", "ru": "B/BB", "slug": "b-bb"},
+        {"ua": "BB/BB", "en": "BB/BB", "ru": "BB/BB", "slug": "bb-bb"},
+        {"ua": "BB/CP", "en": "BB/CP", "ru": "BB/CP", "slug": "bb-cp"},
+        {"ua": "CP/C", "en": "CP/C", "ru": "CP/C", "slug": "cp-c"},
+        {"ua": "C/C", "en": "C/C", "ru": "C/C", "slug": "c-c"}
+      ]
+    },
+    "cutting_method": {
+      "name_ua": "Тип зрізу",
+      "name_en": "Cutting Method",
+      "name_ru": "Тип среза",
+      "options": [
+        {"ua": "Тангенціальний", "en": "Tangential", "ru": "Тангенциальный", "slug": "tanhentsialnyi"},
+        {"ua": "Радіальний", "en": "Radial", "ru": "Радиальный", "slug": "radialnyi"},
+        {"ua": "Напіврадіальний", "en": "Semi-Radial", "ru": "Полурадиальный", "slug": "napivradialnyi"}
+      ]
+    },
+    "backing": {
+      "name_ua": "Основа (підкладка)",
+      "name_en": "Backing",
+      "name_ru": "Основа (подкладка)",
+      "options": [
+        {"ua": "Без основи", "en": "No Backing", "ru": "Без основы", "slug": "bez-osnovy"},
+        {"ua": "Паперова", "en": "Paper", "ru": "Бумажная", "slug": "paperova"},
+        {"ua": "Флізелін", "en": "Non-Woven", "ru": "Флизелин", "slug": "flizelin"}
+      ]
+    },
+    "water_resistance": {
+      "name_ua": "Водостійкість",
+      "name_en": "Water Resistance",
+      "name_ru": "Водостойкость",
+      "options": [
+        {"ua": "ФК (вологостійка)", "en": "FC (Moisture Resistant)", "ru": "ФК (влагостойкая)", "slug": "fk"},
+        {"ua": "ФСФ (підвищеної вологостійкості)", "en": "FSF (Increased Moisture Resistance)", "ru": "ФСФ (повышенной влагостойкости)", "slug": "fsf"}
+      ]
+    },
+    "glue_applied": {
+      "name_ua": "Наявність клею",
+      "name_en": "Glue Applied",
+      "name_ru": "Наличие клея",
+      "options": [
+        {"ua": "З клеєм", "en": "With Glue", "ru": "С клеем", "slug": "z-kleiem"},
+        {"ua": "Без клею", "en": "Without Glue", "ru": "Без клея", "slug": "bez-kleiu"}
+      ]
+    },
+    "brand": {
+      "name_ua": "Бренд",
+      "name_en": "Brand",
+      "name_ru": "Бренд",
+      "options": [
+        {"ua": "Tikkurila", "en": "Tikkurila", "ru": "Тиккурила", "slug": "tikkurila"},
+        {"ua": "Eskaro", "en": "Eskaro", "ru": "Эскаро", "slug": "eskaro"},
+        {"ua": "Kleiberit", "en": "Kleiberit", "ru": "Клейберит", "slug": "kleiberit"},
+        {"ua": "Rakoll", "en": "Rakoll", "ru": "Раколл", "slug": "rakoll"},
+        {"ua": "WoodWay", "en": "WoodWay", "ru": "ВудВей", "slug": "woodway"}
+      ]
+    },
+    "gloss_level": {
+      "name_ua": "Ступінь блиску",
+      "name_en": "Gloss Level",
+      "name_ru": "Степень блеска",
+      "options": [
+        {"ua": "Глянцевий", "en": "Glossy", "ru": "Глянцевый", "slug": "hliantsevyi"},
+        {"ua": "Напівглянцевий", "en": "Semi-Gloss", "ru": "Полуглянцевый", "slug": "napivhliantsevyi"},
+        {"ua": "Напівматовий", "en": "Semi-Matte", "ru": "Полуматовый", "slug": "napivmatovyi"},
+        {"ua": "Матовий", "en": "Matte", "ru": "Матовый", "slug": "matovyi"},
+        {"ua": "Глибокий мат", "en": "Deep Matte", "ru": "Глубокий мат", "slug": "hlybokyi-mat"}
+      ]
+    },
+    "volume": {
+      "name_ua": "Об'єм/Вага",
+      "name_en": "Volume/Weight",
+      "name_ru": "Объем/Вес",
+      "options": [
+        {"ua": "0.75 л", "en": "0.75 L", "ru": "0.75 л", "slug": "0.75l"},
+        {"ua": "1 л", "en": "1 L", "ru": "1 л", "slug": "1l"},
+        {"ua": "2.5 л", "en": "2.5 L", "ru": "2.5 л", "slug": "2.5l"},
+        {"ua": "3 л", "en": "3 L", "ru": "3 л", "slug": "3l"},
+        {"ua": "5 л", "en": "5 L", "ru": "5 л", "slug": "5l"},
+        {"ua": "10 л", "en": "10 L", "ru": "10 л", "slug": "10l"},
+        {"ua": "20 кг", "en": "20 kg", "ru": "20 кг", "slug": "20kg"}
+      ]
+    },
+    "color": {
+      "name_ua": "Колір",
+      "name_en": "Color",
+      "name_ru": "Цвет",
+      "options": [
+        {"ua": "Прозорий", "en": "Transparent", "ru": "Прозрачный", "slug": "prozoryi"},
+        {"ua": "Білий", "en": "White", "ru": "Белый", "slug": "bilyi"},
+        {"ua": "Чорний", "en": "Black", "ru": "Черный", "slug": "chornyi"},
+        {"ua": "Сірий", "en": "Gray", "ru": "Серый", "slug": "siryi"},
+        {"ua": "Колерований (RAL/NCS)", "en": "Tinted (RAL/NCS)", "ru": "Колерованный (RAL/NCS)", "slug": "kolerovanyi"}
+      ]
+    },
+    "veneer_species": {
+      "name_ua": "Шпонування",
+      "name_en": "Veneer Species",
+      "name_ru": "Шпонирование",
+      "options": [
+        {"ua": "Бук", "en": "Beech", "ru": "Бук", "slug": "buk"},
+        {"ua": "Вільха", "en": "Alder", "ru": "Ольха", "slug": "vilkha"},
+        {"ua": "Горіх", "en": "Walnut", "ru": "Орех", "slug": "horikh"},
+        {"ua": "Дуб", "en": "Oak", "ru": "Дуб", "slug": "dub"},
+        {"ua": "Ясен", "en": "Ash", "ru": "Ясень", "slug": "yasen"}
+      ]
+    }
+  }
+}

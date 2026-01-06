@@ -1,0 +1,13 @@
+customtkinter
+Pillow
+google-genai
+piexif
+python-dotenv
+pyinstaller
+typing_extensions
+tkinterdnd2
+ffmpeg-python
+
+# Development dependencies
+pytest
+
