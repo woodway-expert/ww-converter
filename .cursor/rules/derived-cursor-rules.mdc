@@ -42,6 +42,7 @@ globs: *
 *   When transliterating the Cyrillic letter "ш," it's crucial to use the correct Latin representation to maintain clarity and consistency. The standard transliteration for "ш" is "sh." Using "s" instead of "sh" can lead to misinterpretations and inaccuracies.
 *   Company name is `WoodWay Expert` (previously `Wood-way Expert`).
 *   When both `category` and `product_type` are present, the filename should include both, formatted as `{category}-{product_type}-{species}-...`.
+*   Include a `.gitignore` file in the project to exclude unnecessary files from version control.
 
 ## GUI GUIDELINES
 
