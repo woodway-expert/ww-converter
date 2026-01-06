@@ -25,6 +25,11 @@ globs: *
 ## PROJECT DOCUMENTATION & CONTEXT SYSTEM
 
 *   All plans and drafts should be created as `.md` files under the `docs` folder.
+*   User documentation should be written in Ukrainian.
+    *   Full User Guide: `docs/USER_GUIDE_UK.md`
+    *   Quick Start Guide: `docs/QUICK_START_UK.md`
+    *   Troubleshooting Guide: `docs/TROUBLESHOOTING_UK.md`
+    *   Documentation Index: `docs/README_UK.md`
 
 ## CODING STANDARDS
 
@@ -297,3 +302,16 @@ The application will use a hierarchical JSON structure (`data/categories.json`) 
         *   Adjust the frame rate sampling by setting a custom frames per second (FPS) value.
         *   Modify media resolution to optimize processing.
 *   When generating video SEO metadata, send the full video, not only a frame.
+
+## GIT
+
+*   A `.gitignore` file should be created for the project. It should include:
+    *   Python artifacts (`__pycache__/`, `*.pyc`, etc.)
+    *   Virtual environment (`venv/`)
+    *   Build artifacts (`build/`, `dist/`)
+    *   PyInstaller files (`*.spec`, `*.manifest`)
+    *   Environment files (`.env`)
+    *   IDE files (`.idea/`, `.vscode/`)
+    *   OS files (`Thumbs.db`, `.DS_Store`, etc.)
+    *   Executables (`*.exe`)
+*   The `.gitignore` file ignores `*.spec` files by default. If tracking a specific `.spec` file is needed, add an exception (e.g., `!WoodWayConverter.spec`).
