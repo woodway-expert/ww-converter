@@ -84,18 +84,18 @@ globs: *
     *   Add "🔑 Налаштувати ключ Gemini" button in `_create_toolbar()` method. Place it after the AI checkbox or in a logical location.
     *   The button should open a dialog window for entering/updating the key.
     *   Create a new method `_show_gemini_key_dialog()` using `ctk.CTkToplevel` to create a modal dialog.
-        *   Add a text entry field (with password masking or visible, user's choice).
-        *   Add "Save" and "Cancel" buttons.
-        *   Validate the key format (basic validation).
-        *   Save to appdata using the settings module.
-        *   Reinitialize the Gemini client after saving.
-        *   Show success/error messages.
         *   The dialog window must have a fixed size of 520x320 and prevent resizing.
         *   The title label should have a padding of 10x8.
         *   The instructions label should have a padding of 0x8.
         *   The link label should have a padding of 0x12.
         *   The key entry should have a padding of 0x20, a width of 460 and a height of 35.
         *   The buttons frame must have a padding of 15x10 and fill the X axis.
+        *   Add a text entry field (with password masking or visible, user's choice).
+        *   Add "Save" and "Cancel" buttons.
+        *   Validate the key format (basic validation).
+        *   Save to appdata using the settings module.
+        *   Reinitialize the Gemini client after saving.
+        *   Show success/error messages.
 *   Modify `_on_ai_toggle()` method:
     *   Check if Gemini key is available when the user enables AI.
     *   If no key is found, prompt the user to configure it (show the dialog).
@@ -104,6 +104,7 @@ globs: *
     *   If a key is set and the Gemini client is initialized, use the normal button color.
     *   If no key is set, use a warning color.
 *   The AI checkbox must be disabled when no key is set.
+*   The output folder button must not be cutoff when changing the window size.
 
 ## WORKFLOW & RELEASE RULES
 
@@ -366,6 +367,7 @@ The application will use a hierarchical JSON structure (`data/categories.json`) 
     *   Modify `create_client_from_env()` or create a new function `create_client_from_settings()` that loads key from appdata settings.
     *   Keep `create_client_from_env()` for backward compatibility (check env first, then appdata).
     *   Or replace `create_client_from_env()` to check appdata first, then env as fallback.
+    *   `create_client_from_env()` now only uses settings, not environment variables.
 *   Update app initialization in `src/gui/app.py` to load key from settings on startup.
 *   Ensure that the application does not fallback to the `.env` file. The Gemini AI checkbox must be locked if no key was set. This behavior is to ensure that the application does not attempt to generate data without a valid API key, preventing errors and unexpected behavior.
 *   The Gemini AI checkbox should be disabled if no key is set.
