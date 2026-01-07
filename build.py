@@ -28,20 +28,6 @@ def check_ffmpeg() -> bool:
 def build_exe():
     """Build the executable using PyInstaller."""
     
-    # Load environment variables from .env file
-    from dotenv import load_dotenv
-    load_dotenv()
-    
-    # Check for API key
-    api_key = os.getenv('GEMINI_API_KEY')
-    if not api_key:
-        print("WARNING: GEMINI_API_KEY not set. AI features will be disabled in the build.")
-        print("Set it with: set GEMINI_API_KEY=your_key (Windows)")
-        print("")
-    else:
-        print(f"[OK] Using API key from .env: {api_key[:20]}...{api_key[-4:]}")
-        print("")
-    
     # Check for FFmpeg
     if check_ffmpeg():
         ffmpeg_path = shutil.which("ffmpeg")
@@ -91,22 +77,6 @@ def build_exe():
     # Remove empty options
     options = [opt for opt in options if opt]
     
-    # Create a temporary spec file with the API key baked in
-    if api_key:
-        # Create a wrapper script that sets the key
-        wrapper_content = f'''
-import os
-os.environ['GEMINI_API_KEY'] = '{api_key}'
-
-from src.gui.app import run_app
-run_app()
-'''
-        wrapper_path = root_dir / '_build_entry.py'
-        wrapper_path.write_text(wrapper_content)
-        
-        # Update options to use wrapper
-        options[-1] = str(wrapper_path)
-    
     print("Building executable...")
     print(f"Command: {' '.join(options)}")
     
@@ -122,13 +92,11 @@ run_app()
         print("  3. Restart the application")
         print("")
         print("Without FFmpeg, the application will work for images only.")
+        print("")
+        print("NOTE: Users can configure their Gemini API key in the application settings.")
     except subprocess.CalledProcessError as e:
         print(f"\n[ERROR] Build failed with error: {e}")
         sys.exit(1)
-    finally:
-        # Clean up wrapper
-        if api_key and wrapper_path.exists():
-            wrapper_path.unlink()
 
 
 if __name__ == '__main__':

@@ -42,7 +42,7 @@ globs: *
     *   No spaces, underscores, or special characters.
     *   No generic names like `IMG_001.jpg` or `photo.png`.
     *   No keyword stuffing.
-*   API keys must be configured as environment variables before building and should not be visible to the user in the GUI.
+*   API keys must be configured as environment variables **or stored securely in local appdata** before building and should not be visible to the user in the GUI, **except via a dedicated "Gemini API Key" button that allows users to input their own key.**
 *   Create and run tests during development.
 *   When transliterating the Cyrillic letter "ш," it's crucial to use the correct Latin representation to maintain clarity and consistency. The standard transliteration for "ш" is "sh." Using "s" instead of "sh" can lead to misinterpretations and inaccuracies.
 *   Company name is `WoodWay Expert` (previously `Wood-way Expert`).
@@ -80,11 +80,35 @@ globs: *
 *   The GUI must include a "Cancel" button at the bottom, near the loading bar.
 *   Other buttons must be greyed out when processing is in progress.
 *   Replace `PIL.ImageTk.PhotoImage` with `ctk.CTkImage` for thumbnails to ensure proper scaling on HighDPI displays. The window icon (`iconphoto`) must remain as `ImageTk.PhotoImage` since it's a tkinter method.
+*   The GUI must include a button to add the Gemini key. This key should be stored in the local appdata.
+    *   Add "🔑 Налаштувати ключ Gemini" button in `_create_toolbar()` method. Place it after the AI checkbox or in a logical location.
+    *   The button should open a dialog window for entering/updating the key.
+    *   Create a new method `_show_gemini_key_dialog()` using `ctk.CTkToplevel` to create a modal dialog.
+        *   Add a text entry field (with password masking or visible, user's choice).
+        *   Add "Save" and "Cancel" buttons.
+        *   Validate the key format (basic validation).
+        *   Save to appdata using the settings module.
+        *   Reinitialize the Gemini client after saving.
+        *   Show success/error messages.
+        *   The dialog window must have a fixed size of 520x320 and prevent resizing.
+        *   The title label should have a padding of 10x8.
+        *   The instructions label should have a padding of 0x8.
+        *   The link label should have a padding of 0x12.
+        *   The key entry should have a padding of 0x20, a width of 460 and a height of 35.
+        *   The buttons frame must have a padding of 15x10 and fill the X axis.
+*   Modify `_on_ai_toggle()` method:
+    *   Check if Gemini key is available when the user enables AI.
+    *   If no key is found, prompt the user to configure it (show the dialog).
+    *   Only enable AI features if a valid key is available.
+*   The Gemini key button appearance must reflect whether a key is configured.
+    *   If a key is set and the Gemini client is initialized, use the normal button color.
+    *   If no key is set, use a warning color.
+*   The AI checkbox must be disabled when no key is set.
 
 ## WORKFLOW & RELEASE RULES
 
 *   Create and run tests during development.
-*   When building the application, the API key must be set as an environment variable.
+*   When building the application, the API key must be set as an environment variable **or stored securely in local appdata**.
 *   Implement post-processing to translate any untranslated Ukrainian terms in the AI responses.
 *   To build the release executable v.1.0, use PyInstaller.
     *   Activate virtual environment and run build:
@@ -92,10 +116,18 @@ globs: *
         .\venv\Scripts\Activate.ps1
         python build.py
         ```
-    *   Ensure `GEMINI_API_KEY` is set in `.env` file.
+    *   Ensure `GEMINI_API_KEY` is set in `.env` file **or in local appdata.**
     *   FFmpeg installed for video support.
     *   Output: `dist\WoodWayConverter.exe`
     *   Optional: Add version to executable name by modifying `build.py` to produce `WoodWayConverter-v1.0.exe`.
+*   Remove API key baking logic from `build.py` (lines 94-108 and related code). The build should no longer require or embed the API key.
+*   To build the release executable v.1.0.2, use PyInstaller.
+    *   Modify `src/__init__.py` to update the version.
+    *   Activate virtual environment and run build:
+        ```powershell
+        .\venv\Scripts\Activate.ps1
+        python build.py
+        ```
 
 ## DEBUGGING
 
@@ -249,7 +281,7 @@ The application will use a hierarchical JSON structure (`data/categories.json`) 
     *   A boolean flag (`self.is_processing`) to indicate if processing is active.
     *   A list (`self.active_threads`) to store references to active processing threads.
     *   A list (`self.active_ffmpeg_processes`) to store references to active FFmpeg processes.
-*   The `_set_buttons_enabled()` method must be used to enable or disable all action buttons, including: `btn_add`, `btn_clear`, `btn_generate`, `btn_regenerate`, `btn_process`, `btn_output`, `ai_checkbox`, and `model_dropdown`.
+*   The `_set_buttons_enabled()` method must be used to enable or disable all action buttons, including: `btn_add`, `btn_clear`, `btn_generate`, `btn_regenerate`, `btn_process`, `btn_output`, `ai_checkbox`, `btn_gemini_key`, and `model_dropdown`.
     *   When disabling buttons, the `fg_color` must be set to `("gray70", "gray35")`.
     *   When re-enabling buttons, the original `fg_color` must be restored.
 *   The `_cancel_processing()` method must set the cancel event, terminate any active FFmpeg processes, and reset the processing state.
@@ -315,3 +347,26 @@ The application will use a hierarchical JSON structure (`data/categories.json`) 
     *   OS files (`Thumbs.db`, `.DS_Store`, etc.)
     *   Executables (`*.exe`)
 *   The `.gitignore` file ignores `*.spec` files by default. If tracking a specific `.spec` file is needed, add an exception (e.g., `!WoodWayConverter.spec`).
+
+## BUG FIXES AND ENHANCEMENTS
+
+*   **"Оновити всі" ("Update All") Button Tag Update Issues:**
+    *   The `_regenerate_all()` method must clear both `item.metadata` and `item.video_metadata` to prevent old video tags from persisting.
+    *   After regeneration completes, the metadata display for the currently selected item must be refreshed.
+    *   When regenerating videos without AI, `video_metadata` must be cleared to avoid stale tag data.
+
+## SETTINGS AND CONFIGURATION
+
+*   Create `src/core/settings.py` module for loading/saving Gemini API key to local appdata.
+    *   Use `os.getenv('LOCALAPPDATA')` on Windows to get the appdata path.
+    *   Create `WoodWayConverter` subdirectory if it doesn't exist.
+    *   Store key in a JSON config file (`config.json`). Example: `{"gemini_api_key": "..."}`
+    *   Provide functions: `load_gemini_key()`, `save_gemini_key(key: str)`, `get_config_path()`.
+*   Update `src/ai/gemini_client.py` to support loading key from settings (appdata) in addition to environment variables.
+    *   Modify `create_client_from_env()` or create a new function `create_client_from_settings()` that loads key from appdata settings.
+    *   Keep `create_client_from_env()` for backward compatibility (check env first, then appdata).
+    *   Or replace `create_client_from_env()` to check appdata first, then env as fallback.
+*   Update app initialization in `src/gui/app.py` to load key from settings on startup.
+*   Ensure that the application does not fallback to the `.env` file. The Gemini AI checkbox must be locked if no key was set. This behavior is to ensure that the application does not attempt to generate data without a valid API key, preventing errors and unexpected behavior.
+*   The Gemini AI checkbox should be disabled if no key is set.
+*   The output folder button must not be cutoff when changing the window size.

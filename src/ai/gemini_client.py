@@ -1124,22 +1124,31 @@ Return ONLY valid JSON (no markdown, no code blocks):
             ]
 
 
-def create_client_from_env() -> Optional[GeminiClient]:
+def create_client_from_settings() -> Optional[GeminiClient]:
     """
-    Create a Gemini client from environment variables.
+    Create a Gemini client from local appdata settings.
     
     Returns:
         GeminiClient if API key is available, None otherwise
     """
-    import os
-    from dotenv import load_dotenv
+    from src.core.settings import load_gemini_key
     
-    load_dotenv()
-    
-    api_key = os.getenv('GEMINI_API_KEY')
+    api_key = load_gemini_key()
     if not api_key:
         return None
     
     config = GeminiConfig(api_key=api_key)
     return GeminiClient(config)
+
+
+def create_client_from_env() -> Optional[GeminiClient]:
+    """
+    Create a Gemini client from settings only (deprecated name, kept for compatibility).
+    This function now only uses settings, not environment variables.
+    
+    Returns:
+        GeminiClient if API key is available, None otherwise
+    """
+    # Only use settings - no environment variable fallback
+    return create_client_from_settings()
 

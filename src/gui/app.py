@@ -20,8 +20,9 @@ except ImportError:
 
 from src.core import ImageConverter, SEOFileRenamer, MetadataHandler, WordPressExporter, ExportSettings
 from src.core.renamer import ProductAttributes, SEOMetadata
+from src.core.settings import load_gemini_key, save_gemini_key, has_gemini_key
 from src.ai import GeminiClient
-from src.ai.gemini_client import GeminiConfig, create_client_from_env
+from src.ai.gemini_client import GeminiConfig, create_client_from_env, create_client_from_settings
 
 # Video converter support
 try:
@@ -90,7 +91,8 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         # Initialize components
         self.converter = ImageConverter(output_format="webp", quality=85)
         self.renamer = SEOFileRenamer()
-        self.gemini_client: Optional[GeminiClient] = create_client_from_env()
+        # Load Gemini client from settings only (no .env fallback)
+        self.gemini_client: Optional[GeminiClient] = create_client_from_settings()
         
         # Video converter (may be None if FFmpeg not available)
         self.video_converter: Optional[VideoConverter] = None
@@ -140,6 +142,10 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         
         # Update dynamic dropdowns
         self._update_type_dropdown()
+        
+        # Update Gemini key button state and disable AI checkbox if no key
+        self._update_gemini_key_button_state()
+        self._update_ai_checkbox_state()
     
     def _set_window_icon(self):
         """Set the application window icon."""
@@ -183,9 +189,16 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
         
-        # Toolbar at top
-        self.toolbar_frame = ctk.CTkFrame(self, height=50)
-        self.toolbar_frame.grid(row=0, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
+        # Toolbar container at top
+        self.toolbar_container = ctk.CTkFrame(self, height=50)
+        self.toolbar_container.grid(row=0, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
+        self.toolbar_container.grid_propagate(False)
+        self.toolbar_container.grid_columnconfigure(0, weight=1)  # Make toolbar expandable
+        
+        # Toolbar frame that can expand
+        self.toolbar_frame = ctk.CTkFrame(self.toolbar_container, fg_color="transparent")
+        self.toolbar_frame.grid(row=0, column=0, sticky="ew", padx=0, pady=0)
+        self.toolbar_frame.grid_columnconfigure(0, weight=1)  # Left container expands
         
         # Left sidebar for settings
         self.sidebar_frame = ctk.CTkFrame(self, width=300)
@@ -210,9 +223,13 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         # Store original button colors for restoration
         self._original_button_colors = {}
         
+        # Left side buttons container - expands to fill available space
+        left_container = ctk.CTkFrame(self.toolbar_frame, fg_color="transparent")
+        left_container.grid(row=0, column=0, sticky="w")
+        
         # Add images button
         self.btn_add = ctk.CTkButton(
-            self.toolbar_frame,
+            left_container,
             text="📁 Додати файли",
             command=self._add_media,
             width=130
@@ -222,7 +239,7 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         
         # Clear button
         self.btn_clear = ctk.CTkButton(
-            self.toolbar_frame,
+            left_container,
             text="🗑️ Очистити",
             command=self._clear_images,
             width=100,
@@ -232,11 +249,11 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         self._original_button_colors['btn_clear'] = "gray"
         
         # Separator
-        ctk.CTkLabel(self.toolbar_frame, text="|").pack(side="left", padx=10)
+        ctk.CTkLabel(left_container, text="|").pack(side="left", padx=10)
         
         # Generate metadata button
         self.btn_generate = ctk.CTkButton(
-            self.toolbar_frame,
+            left_container,
             text="⚡ Згенерувати назви",
             command=self._generate_metadata,
             width=160
@@ -246,7 +263,7 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         
         # Regenerate all button
         self.btn_regenerate = ctk.CTkButton(
-            self.toolbar_frame,
+            left_container,
             text="🔄 Оновити все",
             command=self._regenerate_all,
             width=120,
@@ -258,7 +275,7 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         
         # AI toggle
         self.ai_checkbox = ctk.CTkCheckBox(
-            self.toolbar_frame,
+            left_container,
             text="Використовувати AI (Gemini)",
             variable=self.use_ai,
             onvalue=True,
@@ -267,11 +284,22 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         )
         self.ai_checkbox.pack(side="left", padx=15, pady=5)
         
+        # Gemini key configuration button
+        self.btn_gemini_key = ctk.CTkButton(
+            left_container,
+            text="🔑 Налаштувати ключ Gemini",
+            command=self._show_gemini_key_dialog,
+            width=180,
+            fg_color=("gray70", "gray35") if not has_gemini_key() else ("gray60", "gray40")
+        )
+        self.btn_gemini_key.pack(side="left", padx=5, pady=5)
+        self._original_button_colors['btn_gemini_key'] = self.btn_gemini_key.cget("fg_color")
+        
         # Model picker (always visible when AI is enabled)
-        self.model_label = ctk.CTkLabel(self.toolbar_frame, text="Модель:")
+        self.model_label = ctk.CTkLabel(left_container, text="Модель:")
         self.model_var = ctk.StringVar(value="gemini-2.5-flash")
         self.model_dropdown = ctk.CTkComboBox(
-            self.toolbar_frame,
+            left_container,
             variable=self.model_var,
             values=["gemini-2.5-flash"],
             width=200,
@@ -280,7 +308,7 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         )
         
         # Store separator reference for positioning
-        self.toolbar_separator = ctk.CTkLabel(self.toolbar_frame, text="|")
+        self.toolbar_separator = ctk.CTkLabel(left_container, text="|")
         
         # Show/hide model picker based on AI state
         if self.use_ai.get():
@@ -298,7 +326,7 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         
         # Process button
         self.btn_process = ctk.CTkButton(
-            self.toolbar_frame,
+            left_container,
             text="✅ Конвертувати і зберегти",
             command=self._process_media,
             width=180,
@@ -307,9 +335,13 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         self.btn_process.pack(side="left", padx=5, pady=5)
         self._original_button_colors['btn_process'] = "green"
         
+        # Right side buttons container - stays on the right
+        right_container = ctk.CTkFrame(self.toolbar_frame, fg_color="transparent")
+        right_container.grid(row=0, column=1, sticky="e")
+        
         # Output folder button
         self.btn_output = ctk.CTkButton(
-            self.toolbar_frame,
+            right_container,
             text="📂 Папка виводу",
             command=self._select_output_folder,
             width=130
@@ -871,6 +903,7 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             self.btn_regenerate.configure(state=state, fg_color=self._original_button_colors.get('btn_regenerate'))
             self.btn_process.configure(state=state, fg_color=self._original_button_colors.get('btn_process'))
             self.btn_output.configure(state=state, fg_color=self._original_button_colors.get('btn_output'))
+            self.btn_gemini_key.configure(state=state, fg_color=self._original_button_colors.get('btn_gemini_key'))
             self.ai_checkbox.configure(state=state)
             # Model dropdown should be readonly if AI is enabled, disabled otherwise
             if self.use_ai.get():
@@ -885,6 +918,7 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             self.btn_regenerate.configure(state=state, fg_color=disabled_color)
             self.btn_process.configure(state=state, fg_color=disabled_color)
             self.btn_output.configure(state=state, fg_color=disabled_color)
+            self.btn_gemini_key.configure(state=state, fg_color=disabled_color)
             self.ai_checkbox.configure(state=state)
             self.model_dropdown.configure(state="disabled")
     
@@ -965,8 +999,44 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
                 return preset["resolution"]
         return (1200, 1200)  # Default fallback
     
+    def _update_gemini_key_button_state(self):
+        """Update Gemini key button appearance based on whether key is set."""
+        if has_gemini_key() and self.gemini_client:
+            # Key is set - use normal color
+            self.btn_gemini_key.configure(fg_color=self._original_button_colors.get('btn_gemini_key', ("gray60", "gray40")))
+        else:
+            # No key - use warning color
+            self.btn_gemini_key.configure(fg_color=("gray70", "gray35"))
+    
+    def _update_ai_checkbox_state(self):
+        """Enable or disable AI checkbox based on whether Gemini key is available."""
+        if not self.gemini_client:
+            # No key - disable checkbox and uncheck it
+            self.ai_checkbox.configure(state="disabled")
+            self.use_ai.set(False)
+            # Hide model picker if visible
+            self.model_label.pack_forget()
+            self.model_dropdown.pack_forget()
+        else:
+            # Key available - enable checkbox
+            self.ai_checkbox.configure(state="normal")
+    
     def _on_ai_toggle(self):
         """Handle AI checkbox toggle - show/hide model picker."""
+        # Prevent enabling if no key is available (shouldn't happen due to disabled state, but double-check)
+        if self.use_ai.get() and not self.gemini_client:
+            # Prompt user to configure key
+            self.use_ai.set(False)  # Uncheck the box
+            response = messagebox.askyesno(
+                "Ключ Gemini не знайдено",
+                "Для використання AI функцій потрібно налаштувати ключ Gemini API.\n\n"
+                "Налаштувати ключ зараз?",
+                icon="question"
+            )
+            if response:
+                self._show_gemini_key_dialog()
+            return
+        
         if self.use_ai.get():
             # Show model picker before separator
             self.model_label.pack(side="left", padx=(10, 5), pady=5, before=self.toolbar_separator)
@@ -978,6 +1048,126 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             # Hide model picker
             self.model_label.pack_forget()
             self.model_dropdown.pack_forget()
+    
+    def _show_gemini_key_dialog(self):
+        """Show dialog for entering/updating Gemini API key."""
+        # Create dialog window
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Налаштування ключа Gemini API")
+        dialog.geometry("520x320")
+        dialog.transient(self)
+        dialog.grab_set()  # Make modal
+        dialog.resizable(False, False)  # Prevent resizing
+        
+        # Center the dialog
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (520 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (320 // 2)
+        dialog.geometry(f"520x320+{x}+{y}")
+        
+        # Main frame with proper padding
+        main_frame = ctk.CTkFrame(dialog)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            main_frame,
+            text="Ключ Gemini API",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        title_label.pack(pady=(10, 8))
+        
+        # Instructions
+        instructions = ctk.CTkLabel(
+            main_frame,
+            text="Введіть ваш ключ API від Google AI Studio:",
+            font=ctk.CTkFont(size=12)
+        )
+        instructions.pack(pady=(0, 8))
+        
+        # Link to get key
+        link_label = ctk.CTkLabel(
+            main_frame,
+            text="Отримати ключ: https://aistudio.google.com/app/apikey",
+            font=ctk.CTkFont(size=11),
+            text_color=("blue", "lightblue"),
+            cursor="hand2"
+        )
+        link_label.pack(pady=(0, 12))
+        
+        # Entry field
+        key_var = ctk.StringVar(value=load_gemini_key() or "")
+        key_entry = ctk.CTkEntry(
+            main_frame,
+            textvariable=key_var,
+            width=460,
+            placeholder_text="Введіть ключ API...",
+            height=35
+        )
+        key_entry.pack(pady=(0, 20), padx=10)
+        key_entry.focus()
+        
+        def save_key():
+            """Save the API key and reinitialize client."""
+            key = key_var.get().strip()
+            
+            if not key:
+                messagebox.showerror("Помилка", "Будь ласка, введіть ключ API.")
+                return
+            
+            # Basic validation - check minimum length
+            if len(key) < 20:
+                messagebox.showerror("Помилка", "Ключ API занадто короткий. Перевірте правильність введення.")
+                return
+            
+            # Save to settings
+            if save_gemini_key(key):
+                # Reinitialize Gemini client
+                try:
+                    self.gemini_client = create_client_from_settings()
+                    if self.gemini_client:
+                        # Update button state and enable AI checkbox
+                        self._update_gemini_key_button_state()
+                        self._update_ai_checkbox_state()
+                        messagebox.showinfo("Успіх", "Ключ API збережено успішно!")
+                        dialog.destroy()
+                    else:
+                        messagebox.showerror("Помилка", "Не вдалося ініціалізувати клієнт Gemini. Перевірте правильність ключа.")
+                except Exception as e:
+                    messagebox.showerror("Помилка", f"Помилка ініціалізації: {str(e)}")
+            else:
+                messagebox.showerror("Помилка", "Не вдалося зберегти ключ API.")
+        
+        # Buttons frame with proper spacing - centered
+        buttons_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        buttons_frame.pack(pady=(15, 10), fill="x")
+        
+        # Save button
+        save_btn = ctk.CTkButton(
+            buttons_frame,
+            text="Зберегти",
+            command=save_key,
+            width=130,
+            height=35,
+            fg_color="green"
+        )
+        save_btn.pack(side="left", padx=(0, 10), expand=True)
+        
+        # Cancel button
+        cancel_btn = ctk.CTkButton(
+            buttons_frame,
+            text="Скасувати",
+            command=dialog.destroy,
+            width=130,
+            height=35,
+            fg_color="gray"
+        )
+        cancel_btn.pack(side="left", padx=(10, 0), expand=True)
+        
+        # Bind Enter key to save
+        def on_enter(event):
+            save_key()
+        key_entry.bind("<Return>", on_enter)
     
     def _load_available_models(self):
         """Load available Gemini models in background."""
@@ -1610,6 +1800,15 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             messagebox.showwarning("Обробка в процесі", "Зачекайте завершення поточної обробки.")
             return
         
+        # Check if AI is enabled but no client is available
+        if self.use_ai.get() and not self.gemini_client:
+            self.use_ai.set(False)  # Disable AI checkbox
+            messagebox.showwarning(
+                "Ключ Gemini не налаштовано",
+                "Для використання AI функцій потрібно налаштувати ключ Gemini API.\n\n"
+                "Генерація метаданих буде виконана без AI."
+            )
+        
         self._start_processing()
         self._update_status("Генерація метаданих...")
         
@@ -1628,9 +1827,19 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             messagebox.showwarning("Обробка в процесі", "Зачекайте завершення поточної обробки.")
             return
         
-        # Clear existing metadata
+        # Check if AI is enabled but no client is available
+        if self.use_ai.get() and not self.gemini_client:
+            self.use_ai.set(False)  # Disable AI checkbox
+            messagebox.showwarning(
+                "Ключ Gemini не налаштовано",
+                "Для використання AI функцій потрібно налаштувати ключ Gemini API.\n\n"
+                "Оновлення метаданих буде виконано без AI."
+            )
+        
+        # Clear existing metadata (including video-specific metadata)
         for item in self.images:
             item.metadata = None
+            item.video_metadata = None
         
         self._start_processing()
         self._update_status("Оновлення метаданих...")
@@ -1808,6 +2017,9 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
                 else:
                     # Use fully algorithmic generation
                     item.metadata = base_metadata
+                    # Clear video_metadata when not using AI (no tags in algorithmic mode)
+                    if item.media_type == "video":
+                        item.video_metadata = None
                     
             except Exception as e:
                 # Fallback to fully algorithmic
@@ -1841,6 +2053,8 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         
         # Refresh UI and reset state
         self.after(0, self._refresh_preview)
+        # Also refresh metadata display for currently selected item
+        self.after(0, lambda: self._display_metadata(self.selected_image) if self.selected_image else None)
         self.after(0, lambda: self._update_status(status_msg))
         self.after(0, self._end_processing)
     
