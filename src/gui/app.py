@@ -367,7 +367,7 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             font=ctk.CTkFont(size=16, weight="bold")
         ).pack(pady=10)
         
-        # Category dropdown
+        # Category dropdown (editable for custom entries)
         ctk.CTkLabel(self.sidebar_scroll, text="Категорія:").pack(anchor="w", padx=10)
         categories = self.renamer.get_category_options()
         cat_values = [""] + [c["name_ua"] for c in categories]
@@ -377,11 +377,12 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             values=cat_values,
             variable=self.category_var,
             command=self._on_category_change,
-            width=260
+            width=260,
+            state="normal"  # Allow custom text input
         )
         self.category_dropdown.pack(padx=10, pady=5)
         
-        # Type dropdown (dynamic)
+        # Type dropdown (dynamic, editable for custom entries)
         ctk.CTkLabel(self.sidebar_scroll, text="Тип:").pack(anchor="w", padx=10)
         self.type_var = ctk.StringVar(value="")
         self.type_dropdown = ctk.CTkComboBox(
@@ -389,11 +390,12 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             values=[""],
             variable=self.type_var,
             command=self._on_type_change,
-            width=260
+            width=260,
+            state="normal"  # Allow custom text input
         )
         self.type_dropdown.pack(padx=10, pady=5)
         
-        # Species dropdown
+        # Species dropdown (editable for custom entries)
         ctk.CTkLabel(self.sidebar_scroll, text="Порода дерева:").pack(anchor="w", padx=10)
         species_options = self.renamer.get_list_options("species")
         species_values = [""] + [s["ua"] for s in species_options]
@@ -403,11 +405,12 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             values=species_values,
             variable=self.species_var,
             command=self._on_attribute_change,
-            width=260
+            width=260,
+            state="normal"  # Allow custom text input
         )
         self.species_dropdown.pack(padx=10, pady=5)
         
-        # Thickness dropdown (will update based on category)
+        # Thickness dropdown (will update based on category, editable for custom entries)
         ctk.CTkLabel(self.sidebar_scroll, text="Товщина:").pack(anchor="w", padx=10)
         self.thickness_var = ctk.StringVar(value="")
         self.thickness_dropdown = ctk.CTkComboBox(
@@ -415,11 +418,12 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             values=[""],
             variable=self.thickness_var,
             command=self._on_attribute_change,
-            width=260
+            width=260,
+            state="normal"  # Allow custom text input
         )
         self.thickness_dropdown.pack(padx=10, pady=5)
         
-        # Grade dropdown
+        # Grade dropdown (editable for custom entries)
         ctk.CTkLabel(self.sidebar_scroll, text="Ґатунок:").pack(anchor="w", padx=10)
         self.grade_var = ctk.StringVar(value="")
         self.grade_dropdown = ctk.CTkComboBox(
@@ -427,9 +431,17 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             values=[""],
             variable=self.grade_var,
             command=self._on_attribute_change,
-            width=260
+            width=260,
+            state="normal"  # Allow custom text input
         )
         self.grade_dropdown.pack(padx=10, pady=5)
+        
+        # Bind paste/copy shortcuts to editable dropdowns
+        self._bind_paste_copy_to_combobox(self.category_dropdown)
+        self._bind_paste_copy_to_combobox(self.type_dropdown)
+        self._bind_paste_copy_to_combobox(self.species_dropdown)
+        self._bind_paste_copy_to_combobox(self.thickness_dropdown)
+        self._bind_paste_copy_to_combobox(self.grade_dropdown)
         
         # Separator
         ctk.CTkFrame(self.sidebar_scroll, height=2, fg_color="gray").pack(fill="x", padx=10, pady=15)
@@ -809,6 +821,8 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         ctk.CTkLabel(self.metadata_frame, text="Назва файлу:").pack(anchor="w", padx=10)
         self.filename_entry = ctk.CTkEntry(self.metadata_frame, width=320)
         self.filename_entry.pack(padx=10, pady=5)
+        # Bind paste/copy shortcuts
+        self._bind_paste_copy_to_entry(self.filename_entry)
         
         # Copy filename button
         self.btn_copy_filename = ctk.CTkButton(
@@ -864,6 +878,9 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
                 command=lambda l=lang: self._copy_language_metadata(l),
                 width=180
             ).pack(pady=10)
+        
+        # Bind paste/copy shortcuts to all textboxes
+        self._bind_paste_copy_to_textboxes()
     
     def _create_status_bar(self):
         """Create status bar."""
@@ -980,6 +997,167 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         self.current_attributes.species = self.species_var.get()
         self.current_attributes.thickness = self.thickness_var.get()
         self.current_attributes.grade = self.grade_var.get()
+    
+    def _bind_paste_copy_to_entry(self, entry_widget):
+        """Bind Ctrl+V (paste) and Ctrl+C (copy) to a CTkEntry widget."""
+        def on_paste(event):
+            try:
+                clipboard_text = self.clipboard_get()
+                if clipboard_text:
+                    # Get the underlying tkinter entry widget
+                    tk_entry = entry_widget._entry
+                    if tk_entry:
+                        # Get current selection
+                        if tk_entry.selection_present():
+                            tk_entry.delete(tk_entry.index("sel.first"), tk_entry.index("sel.last"))
+                        # Insert at cursor position
+                        cursor_pos = tk_entry.index("insert")
+                        tk_entry.insert(cursor_pos, clipboard_text)
+                        # Update the StringVar
+                        entry_widget._variable.set(tk_entry.get())
+            except Exception as e:
+                # Fallback: try direct entry widget methods
+                try:
+                    clipboard_text = self.clipboard_get()
+                    if clipboard_text:
+                        if entry_widget.selection_present():
+                            entry_widget.delete(entry_widget.index("sel.first"), entry_widget.index("sel.last"))
+                        cursor_pos = entry_widget.index("insert")
+                        entry_widget.insert(cursor_pos, clipboard_text)
+                except Exception:
+                    pass  # Silently fail if clipboard is empty or operation fails
+            return "break"
+        
+        def on_copy(event):
+            try:
+                # Get the underlying tkinter entry widget
+                tk_entry = entry_widget._entry
+                if tk_entry and tk_entry.selection_present():
+                    selected_text = tk_entry.selection_get()
+                    self.clipboard_clear()
+                    self.clipboard_append(selected_text)
+            except Exception:
+                # Fallback: try direct entry widget methods
+                try:
+                    if entry_widget.selection_present():
+                        selected_text = entry_widget.selection_get()
+                        self.clipboard_clear()
+                        self.clipboard_append(selected_text)
+                except Exception:
+                    pass  # Silently fail if no selection
+            return "break"
+        
+        # Bind to both the CTkEntry and its underlying tkinter widget
+        entry_widget.bind("<Control-v>", on_paste)
+        entry_widget.bind("<Control-c>", on_copy)
+        # Also try binding to the underlying tkinter entry if accessible
+        try:
+            if hasattr(entry_widget, '_entry') and entry_widget._entry:
+                entry_widget._entry.bind("<Control-v>", on_paste)
+                entry_widget._entry.bind("<Control-c>", on_copy)
+        except Exception:
+            pass
+    
+    def _bind_paste_copy_to_combobox(self, combobox_widget):
+        """Bind Ctrl+V (paste) and Ctrl+C (copy) to a CTkComboBox widget."""
+        def on_paste(event):
+            try:
+                clipboard_text = self.clipboard_get()
+                if clipboard_text:
+                    # Try to get the entry widget inside the combobox
+                    # CustomTkinter CTkComboBox has an internal entry widget
+                    entry = None
+                    try:
+                        entry = combobox_widget._entry
+                    except AttributeError:
+                        # Try alternative access methods
+                        try:
+                            entry = combobox_widget._textbox
+                        except AttributeError:
+                            pass
+                    
+                    if entry:
+                        # Get current selection
+                        if entry.selection_present():
+                            entry.delete(entry.index("sel.first"), entry.index("sel.last"))
+                        # Insert at cursor position
+                        cursor_pos = entry.index("insert")
+                        entry.insert(cursor_pos, clipboard_text)
+                        # Update the StringVar to reflect the change
+                        try:
+                            combobox_widget._variable.set(entry.get())
+                        except AttributeError:
+                            pass
+                    else:
+                        # Fallback: append to current value if we can't access entry
+                        current_value = combobox_widget.get()
+                        combobox_widget.set(current_value + clipboard_text)
+            except Exception:
+                pass  # Silently fail if clipboard is empty or operation fails
+            return "break"
+        
+        def on_copy(event):
+            try:
+                # Try to get the entry widget inside the combobox
+                entry = None
+                try:
+                    entry = combobox_widget._entry
+                except AttributeError:
+                    try:
+                        entry = combobox_widget._textbox
+                    except AttributeError:
+                        pass
+                
+                if entry and entry.selection_present():
+                    selected_text = entry.selection_get()
+                    self.clipboard_clear()
+                    self.clipboard_append(selected_text)
+                else:
+                    # Fallback: copy current value if no selection
+                    current_value = combobox_widget.get()
+                    if current_value:
+                        self.clipboard_clear()
+                        self.clipboard_append(current_value)
+            except Exception:
+                pass  # Silently fail if no selection
+            return "break"
+        
+        combobox_widget.bind("<Control-v>", on_paste)
+        combobox_widget.bind("<Control-c>", on_copy)
+    
+    def _bind_paste_copy_to_textbox(self, textbox_widget):
+        """Bind Ctrl+V (paste) and Ctrl+C (copy) to a CTkTextbox widget."""
+        def on_paste(event):
+            try:
+                clipboard_text = self.clipboard_get()
+                if clipboard_text:
+                    # Get current selection
+                    if textbox_widget.tag_ranges("sel"):
+                        textbox_widget.delete("sel.first", "sel.last")
+                    # Insert at cursor position
+                    textbox_widget.insert("insert", clipboard_text)
+            except Exception:
+                pass  # Silently fail if clipboard is empty or operation fails
+            return "break"
+        
+        def on_copy(event):
+            try:
+                if textbox_widget.tag_ranges("sel"):
+                    selected_text = textbox_widget.get("sel.first", "sel.last")
+                    self.clipboard_clear()
+                    self.clipboard_append(selected_text)
+            except Exception:
+                pass  # Silently fail if no selection
+            return "break"
+        
+        textbox_widget.bind("<Control-v>", on_paste)
+        textbox_widget.bind("<Control-c>", on_copy)
+    
+    def _bind_paste_copy_to_textboxes(self):
+        """Bind paste/copy shortcuts to all textbox fields in metadata panel."""
+        for lang in self.lang_fields:
+            for field_name, textbox in self.lang_fields[lang].items():
+                self._bind_paste_copy_to_textbox(textbox)
     
     def _on_resolution_change(self, value: str):
         """Handle resolution preset change and update description."""
@@ -1106,6 +1284,59 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
         )
         key_entry.pack(pady=(0, 20), padx=10)
         key_entry.focus()
+        
+        # Bind paste/copy shortcuts to Gemini API key entry
+        self._bind_paste_copy_to_entry(key_entry)
+        
+        # Also bind to dialog window and main frame as fallback
+        def dialog_paste(event):
+            try:
+                # Check if entry has focus
+                focus_widget = dialog.focus_get()
+                if focus_widget:
+                    # Try to get clipboard
+                    clipboard_text = dialog.clipboard_get()
+                    if clipboard_text:
+                        # Access underlying tkinter entry
+                        try:
+                            tk_entry = key_entry._entry
+                            if tk_entry and (focus_widget == tk_entry or str(focus_widget) == str(tk_entry)):
+                                # Entry has focus, paste into it
+                                if tk_entry.selection_present():
+                                    tk_entry.delete(tk_entry.index("sel.first"), tk_entry.index("sel.last"))
+                                cursor_pos = tk_entry.index("insert")
+                                tk_entry.insert(cursor_pos, clipboard_text)
+                                key_entry._variable.set(tk_entry.get())
+                                return "break"
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+            return None  # Allow default behavior if our handler didn't work
+        
+        def dialog_copy(event):
+            try:
+                focus_widget = dialog.focus_get()
+                if focus_widget:
+                    try:
+                        tk_entry = key_entry._entry
+                        if tk_entry and (focus_widget == tk_entry or str(focus_widget) == str(tk_entry)):
+                            if tk_entry.selection_present():
+                                selected_text = tk_entry.selection_get()
+                                dialog.clipboard_clear()
+                                dialog.clipboard_append(selected_text)
+                                return "break"
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            return None  # Allow default behavior if our handler didn't work
+        
+        # Bind to dialog and main frame
+        dialog.bind("<Control-v>", dialog_paste, add="+")
+        dialog.bind("<Control-c>", dialog_copy, add="+")
+        main_frame.bind("<Control-v>", dialog_paste, add="+")
+        main_frame.bind("<Control-c>", dialog_copy, add="+")
         
         def save_key():
             """Save the API key and reinitialize client."""
@@ -1252,7 +1483,12 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             filetypes.append(("Відео", video_exts))
         filetypes.append(("Усі файли", "*.*"))
         
-        paths = filedialog.askopenfilenames(filetypes=filetypes)
+        # Ensure file dialog is called with parent window
+        paths = filedialog.askopenfilenames(
+            parent=self,
+            title="Виберіть зображення та/або відео",
+            filetypes=filetypes
+        )
         
         if paths:
             start_index = len(self.images)
@@ -1340,6 +1576,10 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
                 except Exception as e:
                     print(f"Thumbnail error for {item.path}: {e}")
                     pass  # Silently skip failed thumbnails
+        
+        # Update UI after thumbnails are loaded (schedule on main thread)
+        if items:  # Only update if we actually processed items
+            self.after(0, self._refresh_preview)
     
     def _clear_images(self):
         """Clear all images."""
@@ -1415,13 +1655,9 @@ class WoodWayConverterApp(ctk.CTk, TkinterDnD.DnDWrapper if DND_AVAILABLE else o
             # Use cached thumbnail if available
             if item.path in self._thumbnail_cache:
                 photo = self._thumbnail_cache[item.path]
-            elif item.media_type == "image":
-                # Use CTkImage for proper HighDPI scaling
-                thumb = self.converter.get_thumbnail(item.path, size=(90, 70))
-                photo = ctk.CTkImage(light_image=thumb, dark_image=thumb, size=(90, 70))
-                self._thumbnail_cache[item.path] = photo
             else:
-                # Video without cached thumbnail - show placeholder
+                # Thumbnail not ready yet - show placeholder
+                # Thumbnails will be loaded in background thread
                 photo = None
             
             if photo:

@@ -69,7 +69,7 @@ globs: *
 *   The GUI must display the new tags that will be applied to each file.
 *   Tag fields must be easily copyable.
 *   The GUI must include multi-language tabs: UA / EN / RU tabs for viewing/copying each language's tags
-*   Dropdown fields are immutable, only allowing selection from the dropdown options. **MUST be unlocked for editing based on the user's latest instruction.**
+*   Dropdown fields MUST support custom entries (e.g., "Обрізна/необрізна", "32/52 мм" "Усі ґатунки" etc.) and accept Ctrl+C/Ctrl+V input. **Dropdown fields are editable and accept Ctrl+C/Ctrl+V input. The following dropdowns support custom text input: category, type, species, thickness, grade.**
 *   The "Налаштування відео" section must be scrollable (or otherwise made fully visible).
 *   The GUI must display video conversion progress in the status bar, including percentage, speed, and estimated time remaining.
 *   The GUI must display user-friendly error messages for video conversion, guiding users to check FFmpeg installation and codec support.
@@ -105,6 +105,7 @@ globs: *
     *   If no key is set, use a warning color.
 *   The AI checkbox must be disabled when no key is set.
 *   The output folder button must not be cutoff when changing the window size.
+*   **All text input fields (including the Gemini API Key field) must support Ctrl+C/Ctrl+V.**
 
 ## WORKFLOW & RELEASE RULES
 
@@ -129,11 +130,15 @@ globs: *
         .\venv\Scripts\Activate.ps1
         python build.py
         ```
+*   When building the application, the version is appended to the executable name like `*-1.0.3.exe`
 
 ## DEBUGGING
 
 *   Implement user-friendly visual feedback for FFmpeg progress and errors.
 *   Ensure the FFmpeg command window is hidden during video generation.
+*   If the UI hangs when adding images/videos, ensure that thumbnail loading is done in a background thread to avoid blocking the main thread.
+    *   Ensure file dialog is called with parent window. The `filedialog.askopenfilenames()` call must include a `parent=self` parameter to ensure it's properly associated with the main window.
+    *   The `_create_image_card()` no longer loads thumbnails synchronously. It only uses cached thumbnails; missing ones show a placeholder until the background thread loads them.
 
 ## AI MODEL USAGE
 
@@ -355,6 +360,10 @@ The application will use a hierarchical JSON structure (`data/categories.json`) 
     *   The `_regenerate_all()` method must clear both `item.metadata` and `item.video_metadata` to prevent old video tags from persisting.
     *   After regeneration completes, the metadata display for the currently selected item must be refreshed.
     *   When regenerating videos without AI, `video_metadata` must be cleared to avoid stale tag data.
+*   **Hangs when trying to add images/video:**
+    *   Ensure that thumbnail loading is done in a background thread to avoid blocking the main thread.
+    *   Ensure file dialog is called with parent window. The `filedialog.askopenfilenames()` call must include a `parent=self` parameter to ensure it's properly associated with the main window.
+    *   The `_create_image_card()` no longer loads thumbnails synchronously. It only uses cached thumbnails; missing ones show a placeholder until the background thread loads them.
 
 ## SETTINGS AND CONFIGURATION
 

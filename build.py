@@ -19,6 +19,13 @@ import subprocess
 import shutil
 from pathlib import Path
 
+# Import version from src package
+try:
+    from src import __version__
+    VERSION = __version__
+except ImportError:
+    VERSION = "1.0.0"  # Fallback version
+
 
 def check_ffmpeg() -> bool:
     """Check if FFmpeg is available."""
@@ -51,9 +58,12 @@ def build_exe():
     else:
         pyinstaller_cmd = [str(venv_pyinstaller)]
     
+    # Build executable name with version
+    exe_name = f'WoodWayConverter-{VERSION}'
+    
     # PyInstaller options
     options = pyinstaller_cmd + [
-        '--name=WoodWayConverter',
+        f'--name={exe_name}',
         '--onefile',
         '--windowed',  # No console window
         '--noconfirm',  # Overwrite without asking
@@ -83,7 +93,7 @@ def build_exe():
     try:
         subprocess.run(options, check=True)
         print("\n[SUCCESS] Build successful!")
-        print(f"Executable location: {root_dir / 'dist' / 'WoodWayConverter.exe'}")
+        print(f"Executable location: {root_dir / 'dist' / f'{exe_name}.exe'}")
         print("")
         print("=== Post-Build Notes ===")
         print("For VIDEO SUPPORT, users must have FFmpeg installed:")
